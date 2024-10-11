@@ -1,0 +1,6 @@
+.venv/
+config.toml
+__pycache__/
+data/
+delete_table.py
+.vscode/
