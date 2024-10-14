@@ -582,8 +582,9 @@ class ModbusTCPDataLogger:
 
 	def create_data_for_db(self, data = None, data_log = None, town = None, ):
 		if town not in data:
-			data[town] = {'timestamp_utc': data_log.pop('timestamp_utc')}
+			data[town] = {'timestamp_utc': datetime.datetime.utcnow()}
 
+		del data_log['timestamp_utc']
 		del data_log['timestamp_local']
 
 		for id_register in data_log:

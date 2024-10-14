@@ -20,7 +20,7 @@ def create_dynamic_model(name_table):
         NH3 = Column(String(15))
         PM2_5=Column(String(15))
         PM10=Column(String(15))
-        timestamp = Column(DateTime, default=datetime.utcnow)
+        timestamp = Column(DateTime)
 
     return DynamicTable
 
@@ -35,7 +35,7 @@ def add_register_record(
         CO=None, SO2=None, NO2=None, 
         NO=None, H2S=None, O3=None, 
         NH3=None, PM2_5=None, PM10=None, 
-        timestamp: DateTime = None,  session=None, engine=None
+        timestamp: DateTime = datetime.utcnow(),  session=None, engine=None
         ):
     if session is None or engine is None:
         return
@@ -57,7 +57,7 @@ def add_register_record(
         NH3=NH3,
         PM2_5=PM2_5,
         PM10=PM10,
-        timestamp=datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S%z'),
+        timestamp=timestamp.strftime('%Y-%m-%d %H:%M:%S%z'),
     )
     session.add(new_record)
     session.commit()
