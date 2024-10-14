@@ -245,6 +245,7 @@ class ModbusHelper(object):
 		# 	config = json.load(json_file)
 		# json_file.close()
 		config = toml.load(full_path_to_modbus_config_toml)['modbus_dl']
+		config_compound = toml.load(full_path_to_modbus_config_toml).get('compound', {})
 		
 		# perform input validation
 		for key in config:
@@ -322,7 +323,7 @@ class ModbusHelper(object):
 							print('\t[ERROR] value of sub_key "'+str(sub_key)+'" should be an integer >= 1')
 							print('\t[ERROR] current value for sub_key "'+str(sub_key)+'" is',str(sub_key_value))
 							return
-		return config
+		return config, config_compound
 
 class ModbusTCPClient:
 	def __init__(self, server_ip=None, server_port=None, server_id=None, poll_interval_seconds=None):
@@ -581,21 +582,23 @@ class ModbusTCPDataLogger:
 
 	def create_data_for_db(self, data = None, data_log = None, town = None, ):
 		if town not in data:
-			data[town] = {}
+			data[town] = {'timestamp_utc': data_log.pop('timestamp_utc')}
 
-		del data_log['timestamp_utc']
 		del data_log['timestamp_local']
 
 		for id_register in data_log:
 			id = id_register.split("_")[2]
 			register = id_register.split("_")[-1]
+			compound = self.compound_name.get(town, {}).get(id, {}).get(register)
+			value = data_log[id_register]
 
-			if id not in data[town]:
-				data[town][id] = {}
+			formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
 			
-			if register not in data[town][id]:
-				data[town][id][register] = data_log[id_register]
+			if compound not in data[town]:
+				data[town][compound] = formatted_value
 		
+
+
 		return data
 
 		
@@ -628,7 +631,7 @@ class ModbusTCPDataLogger:
 			'in_memory_records': 0,
 			'written_to_live_file_records': 0
 		}
-		self.modbus_config = ModbusHelper.parse_json_config(full_path_to_modbus_config_toml)
+		self.modbus_config, self.compound_name = ModbusHelper.parse_json_config(full_path_to_modbus_config_toml)
 		if self.modbus_config is None:
 			print('\t[ERROR] An error occured while parsing the Modbus json configuration file!')
 			print('\t[ERROR] Please review the error messages, correct the Modbus json configuration file and try again.')

@@ -29,10 +29,10 @@ max_file_records = 100
 
 #EXAMPLE
 ###### Lviv #######
-# [compound.Lviv.6]  | optional parameter
-# 21 = "CO"          | 
-# 22 = "SO2"         |
-# 23 = "NO2"         |
+[compound.Lviv.6]   
+21 = "CO"           
+22 = "SO2"         
+23 = "NO2"         
 
 [modbus_dl.town.Lviv.192_168_0_13.6]
 21 = ["20", "HR", "uint16", "sensor_id_6_register_21", "1.0", "0.0"]

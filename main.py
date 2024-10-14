@@ -17,19 +17,21 @@ def main():
         user=config_toml['DB']['user'],
         password=config_toml['DB']['password']
         )
+    print(modbus_logger.data_for_db)
 
     for town, records in modbus_logger.data_for_db.items():
         if records is None:
-            add_register_record(town=town, sensor_id=None, register=None, value=None, session=session, engine=engine)
+            add_register_record(
+                town=town, session=session, engine=engine)
             continue
 
-        for id, registers in records.items():
-            for register, value in registers.items():
-                compound = config_toml.get('compound', {}).get(town, {}).get(id, {}).get(register)
-
-                formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
-
-                add_register_record(town=town, sensor_id=id, register=register, value=formatted_value, session=session, engine=engine)
+        add_register_record(
+            town=town, 
+            CO=records.get('CO'), SO2=records.get('SO2'), NO2=records.get('NO2'), 
+            NO=records.get('NO'), H2S=records.get('H2S'), O3=records.get('O3'), 
+            NH3=records.get('NH3'), PM2_5=records.get('PM2.5'), PM10=records.get('PM10'), 
+            timestamp = records.get('timestamp_utc'), session=session, engine=engine
+            )
 
     disconnect(session)
 
