@@ -2,6 +2,7 @@ import os, toml, datetime
 
 from modbus_dl.scripts import  modbus_helper
 from ORM_MySql.connect_mysql import connect_DB, add_register_record, disconnect
+from API_sheet.sheets_update import update_sheets
 
 config_toml = toml.load('config.toml')
 
@@ -17,7 +18,6 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
         user=config_toml['DB']['user'],
         password=config_toml['DB']['password']
         )
-    print(modbus_logger.data_for_db)
 
     for town, records in modbus_logger.data_for_db.items():
         if records is None:
@@ -38,6 +38,9 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
 
     disconnect(session)
 
+    current_time = datetime.datetime.now()
+    if current_time.minute == 0: 
+        update_sheets(modbus_logger.data_for_db)
 
 if __name__ == "__main__":
     main()

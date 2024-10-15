@@ -1,3 +1,19 @@
+
+cities = [
+      'Khmelnytskyi', 'Ivankov', 'Irpen', 'Cherry',
+      'Boyarka', 'Obukhov', 'Dymerka', 'Kagarlyk',
+      'Uzin', 'Boryspil', 'Vyshhorod', 'Vasylkiv',
+      'Bohuslav', 'Breweries', 'Podhirtsi', 'Bila_Tserkva'
+  ]
+
+##############################
+#          Sheets            #
+##############################
+
+url_apps_script = 'https://script.google.com/macros/s/AKfycbwWQ8mNdZxnVIzbarxVrhQVjWsbC_OQ0hPTdRtbhqnLOrQNONUb4UWs7HmYl380UDYG/exec'
+
+
+
 ##############################
 #         DataBase           #
 ##############################
