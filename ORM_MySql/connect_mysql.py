@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import create_engine, Column, Integer, Float, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -11,16 +11,16 @@ def create_dynamic_model(name_table):
         __tablename__ = name_table
         __table_args__ = {'extend_existing': True}
         id = Column(Integer, primary_key=True, autoincrement=True)
-        CO = Column(String(15))
-        SO2 = Column(String(15))
-        NO2 = Column(String(15))
-        NO = Column(String(15))
-        H2S = Column(String(15))
-        O3 = Column(String(15))
-        NH3 = Column(String(15))
-        PM2_5=Column(String(15))
-        PM10=Column(String(15))
-        timestamp = Column(DateTime)
+        CO = Column(Float)
+        SO2 = Column(Float)
+        NO2 = Column(Float)
+        NO = Column(Float)
+        H2S = Column(Float)
+        O3 = Column(Float)
+        NH3 = Column(Float)
+        PM2_5=Column(Float)
+        PM10=Column(Float)
+        timestamp = Column(DateTime(timezone=True))
 
     return DynamicTable
 
@@ -57,7 +57,7 @@ def add_register_record(
         NH3=NH3,
         PM2_5=PM2_5,
         PM10=PM10,
-        timestamp=timestamp.strftime('%Y-%m-%d %H:%M:%S%z'),
+        timestamp=timestamp,
     )
     session.add(new_record)
     session.commit()

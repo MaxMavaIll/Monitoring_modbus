@@ -582,9 +582,8 @@ class ModbusTCPDataLogger:
 
 	def create_data_for_db(self, data = None, data_log = None, town = None, ):
 		if town not in data:
-			data[town] = {'timestamp_utc': datetime.datetime.utcnow()}
+			data[town] = {'timestamp_utc': data_log.pop('timestamp_utc')}
 
-		del data_log['timestamp_utc']
 		del data_log['timestamp_local']
 
 		for id_register in data_log:
@@ -593,10 +592,14 @@ class ModbusTCPDataLogger:
 			compound = self.compound_name.get(town, {}).get(id, {}).get(register)
 			value = data_log[id_register]
 
-			formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
+			# formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
+			formatted_value = value / 1000
 			
-			if compound not in data[town]:
-				data[town][compound] = formatted_value
+			if 'compound' not in data[town]:
+				data[town]['compound'] = {}
+
+			if compound not in data[town]['compound']:
+				data[town]['compound'][compound] = formatted_value
 		
 
 
