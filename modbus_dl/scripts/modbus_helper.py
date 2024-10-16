@@ -661,26 +661,27 @@ class ModbusTCPDataLogger:
 						)
 				try:
 					self.modbus_tcp_client.connect(self.modbus_config['server_timeout_seconds'])
+				
+					for sensor_id in self.modbus_config['town'][town_name][ip_address]:	
+
+						self.modbus_tcp_client.set_sensor_id(int(sensor_id))
+						self.modbus_tcp_client.load_template(self.modbus_config['town'][town_name][ip_address][sensor_id])
+
+						# print('Press Ctrl+C to stop and exit gracefully...')
+						modbus_poll_response = self.modbus_tcp_client.cycle_poll()			
+						
+						if self.data_logging:
+							# continue to load records in memory as long as in_memory_records threshold is not met
+							self.data_log['data'].update(modbus_poll_response)
+
+						if not quiet:
+							self.modbus_tcp_client.pretty_print_interpreted_response(modbus_poll_response)
+							print('Press Ctrl+C to stop and exit gracefully...')
+						# time.sleep(self.modbus_config['poll_interval_seconds'])
 				except:
 					if town_name not in self.data_for_db:
 						self.data_for_db[town_name] = None
 					continue
-				for sensor_id in self.modbus_config['town'][town_name][ip_address]:	
-
-					self.modbus_tcp_client.set_sensor_id(int(sensor_id))
-					self.modbus_tcp_client.load_template(self.modbus_config['town'][town_name][ip_address][sensor_id])
-
-					# print('Press Ctrl+C to stop and exit gracefully...')
-					modbus_poll_response = self.modbus_tcp_client.cycle_poll()			
-					
-					if self.data_logging:
-						# continue to load records in memory as long as in_memory_records threshold is not met
-						self.data_log['data'].update(modbus_poll_response)
-
-					if not quiet:
-						self.modbus_tcp_client.pretty_print_interpreted_response(modbus_poll_response)
-						print('Press Ctrl+C to stop and exit gracefully...')
-					# time.sleep(self.modbus_config['poll_interval_seconds'])
 				self.termination_signal_handler()
 				self.create_data_for_db(self.data_for_db, self.data_log['data'], town_name)
 		

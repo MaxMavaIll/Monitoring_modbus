@@ -43,7 +43,7 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
             if town not in averages:
                 averages[town]= get_daily_averages(town=town, session=session, engine=engine)
            
-    if averages is not {}:
+    if averages != {}:
         update_sheets(data=modbus_logger.data_for_db, averages=averages)
     elif current_time.minute == 0: 
         update_sheets(data=modbus_logger.data_for_db)
