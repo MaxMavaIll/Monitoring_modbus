@@ -1,15 +1,13 @@
 
 cities = [
-      'Khmelnytskyi', 'Ivankov', 'Irpen', 'Cherry',
-      'Boyarka', 'Obukhov', 'Dymerka', 'Kagarlyk',
-      'Uzin', 'Boryspil', 'Vyshhorod', 'Vasylkiv',
-      'Bohuslav', 'Breweries', 'Podhirtsi', 'Bila_Tserkva'
+      'Lviv',
+      'Kyiv'
   ]
 
 ##############################
 #          Sheets            #
 ##############################
-
+[sheets]
 url_apps_script = 'https://script.google.com/macros/s/AKfycbwWQ8mNdZxnVIzbarxVrhQVjWsbC_OQ0hPTdRtbhqnLOrQNONUb4UWs7HmYl380UDYG/exec'
 
 
@@ -22,6 +20,7 @@ url_apps_script = 'https://script.google.com/macros/s/AKfycbwWQ8mNdZxnVIzbarxVrh
 host = 'localhost'
 user = 'user'
 password = '*******'
+database = 'test'
 
 
 
@@ -49,8 +48,19 @@ max_file_records = 100
 21 = "CO"           
 22 = "SO2"         
 23 = "NO2"         
-
 [modbus_dl.town.Lviv.192_168_0_13.6]
+21 = ["20", "HR", "uint16", "sensor_id_6_register_21", "1.0", "0.0"]
+22 = ["21", "HR", "uint16", "sensor_id_6_register_22", "1.0", "0.0"]
+23 = ["22", "HR", "uint16", "sensor_id_6_register_23", "1.0", "0.0"]
+
+
+
+###### Kyiv #######
+[compound.Kyiv.6]   
+21 = "CO"           
+22 = "SO2"         
+23 = "NO2"         
+[modbus_dl.town.Kyiv.192_168_0_15.6]
 21 = ["20", "HR", "uint16", "sensor_id_6_register_21", "1.0", "0.0"]
 22 = ["21", "HR", "uint16", "sensor_id_6_register_22", "1.0", "0.0"]
 23 = ["22", "HR", "uint16", "sensor_id_6_register_23", "1.0", "0.0"]

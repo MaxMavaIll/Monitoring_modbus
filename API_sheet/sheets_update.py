@@ -10,13 +10,17 @@ url = {
     "update": config_toml['sheets']['url_apps_script'],
 }
 
-def update_sheets(data: dict = {}):
+def update_sheets(data: dict = {}, averages: dict = None):
     tmp = {}
+
     if 'cities' not in tmp:
         tmp['cities'] = config_toml['cities']
 
     if 'data' not in tmp:
         tmp['data'] = data
+
+    if averages !=  None:
+        tmp['averages'] = averages
 
     json_data = json.dumps(tmp)
 
@@ -25,3 +29,5 @@ def update_sheets(data: dict = {}):
         headers={'Content-Type': 'application/x-www-form-urlencoded'
         })
     print(tmp.text)
+
+# def update_averages(averages: list = [], data: dict = {})
