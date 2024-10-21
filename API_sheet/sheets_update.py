@@ -22,7 +22,10 @@ def update_sheets(data: dict = {}, averages: dict = None):
     if averages !=  None:
         tmp['averages'] = averages
 
+    print(tmp['data'])
+
     json_data = json.dumps(tmp)
+    
 
     tmp = requests.post(
         url["update"], data={'data': json_data},
