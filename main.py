@@ -48,7 +48,6 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
     elif current_time.minute == 0: 
         update_sheets(data=modbus_logger.data_for_db)
 
-    update_sheets(data=modbus_logger.data_for_db)
 
     disconnect(session)
 
