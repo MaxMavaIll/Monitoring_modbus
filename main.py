@@ -28,8 +28,11 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
                 town=town, session=session, engine=engine)
             continue
 
-        compound = records['compound']
+        compound = records.get('compound')
         timestamp = datetime.datetime.strptime(records.get('timestamp_utc'), time_format)
+
+        if not compound:
+            compound = {}
 
         add_register_record(
             town=town, 

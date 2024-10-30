@@ -14,7 +14,7 @@ def update_sheets(data: dict = {}, averages: dict = None):
     tmp = {}
 
     if 'cities' not in tmp:
-        tmp['cities'] = config_toml['cities']
+        tmp['cities'] = list(config_toml['cities'].values())
 
     if 'data' not in tmp:
         tmp['data'] = data

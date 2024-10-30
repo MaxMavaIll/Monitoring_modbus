@@ -260,6 +260,7 @@ class ModbusHelper(object):
 						elif tmp == 2:continue
 
 						for id in config[key][town][ip]:
+							
 							tmp = cls.chech_port_id_records(config, 'server_id', int(id), full_path_to_modbus_config_toml)
 							if tmp == 0: return
 							elif tmp == 2: continue
@@ -381,6 +382,10 @@ class ModbusTCPClient:
 	def disconnect(self):
 		self.sock.close()
 
+	def reconnect(self):
+		self.disconnect()
+		self.connect()
+
 	def interpret_response(self, response, fc, start_address):
 		interpreted_response = {}
 		skip_next = False
@@ -501,12 +506,18 @@ class ModbusTCPClient:
 		for modbus_call in self.call_groups:
 			modbus_request = ModbusHelper.UMODBUS_TCP_CALL[modbus_call]
 			for query in self.call_groups[modbus_call]:
-				message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query['start_address'], quantity=query['register_count'])
+				message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query["start_address"], quantity=query["register_count"])
 
 				# Response depends on Modbus function code.
-				response = tcp.send_message(message, self.sock)
-				interpreted_response = self.interpret_response(response, modbus_call, query['start_address'])
-				all_interpreted_responses.append(interpreted_response)
+				try:
+					response = tcp.send_message(message, self.sock)
+					# print(response[106], response[107])
+					interpreted_response = self.interpret_response(response, modbus_call, query['start_address'])
+					all_interpreted_responses.append(interpreted_response)
+				except Exception as err:
+					print(f"Didn't get a result from the registry {self.modbus_tcp_server_ip_address} {self.modbus_tcp_server_id} {query['start_address']}")
+					print(f'Error: answer with server {err}')
+
 		combined_responses = self.combine_tag_responses(all_interpreted_responses)
 		return combined_responses
 
@@ -602,7 +613,6 @@ class ModbusTCPDataLogger:
 				data[town]['compound'][compound] = formatted_value
 		
 
-
 		return data
 
 		
@@ -654,15 +664,23 @@ class ModbusTCPDataLogger:
 					print('\t[ERROR] Now exiting Python with sys.exit()')
 					sys.exit()
 
+				connect = False
+
 				self.modbus_tcp_client = ModbusTCPClient(
 							server_ip=ip_address.replace('_','.'),
 							server_port=self.modbus_config['server_port'],
 							poll_interval_seconds=self.modbus_config['poll_interval_seconds']
 						)
 				try:
-					self.modbus_tcp_client.connect(self.modbus_config['server_timeout_seconds'])
-				
+					
 					for sensor_id in self.modbus_config['town'][town_name][ip_address]:	
+						if self.modbus_config['town'][town_name][ip_address][sensor_id].get('port'):
+							self.modbus_tcp_client.modbus_tcp_server_port = self.modbus_config['town'][town_name][ip_address][sensor_id].pop("port")
+							self.modbus_tcp_client.connect(self.modbus_config['server_timeout_seconds'])
+
+						elif not connect:
+							self.modbus_tcp_client.connect(self.modbus_config['server_timeout_seconds'])
+							connect = True
 
 						self.modbus_tcp_client.set_sensor_id(int(sensor_id))
 						self.modbus_tcp_client.load_template(self.modbus_config['town'][town_name][ip_address][sensor_id])
@@ -678,7 +696,8 @@ class ModbusTCPDataLogger:
 							self.modbus_tcp_client.pretty_print_interpreted_response(modbus_poll_response)
 							print('Press Ctrl+C to stop and exit gracefully...')
 						# time.sleep(self.modbus_config['poll_interval_seconds'])
-				except:
+				except Exception as err:
+					print(f"Error: {err}")
 					if town_name not in self.data_for_db:
 						self.data_for_db[town_name] = None
 					continue
