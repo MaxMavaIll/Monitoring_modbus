@@ -1,8 +1,7 @@
 
-cities = [
-      'Lviv',
-      'Kyiv'
-  ]
+[cities] 
+1 = Kyiv
+2 = Lviv
 
 ##############################
 #          Sheets            #
