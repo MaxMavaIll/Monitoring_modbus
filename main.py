@@ -49,7 +49,6 @@ def main():
 
     for town, records in modbus_logger.data_for_db.items():
 
-        records = None
         if records is None:
             add_register_record(
                 town=town, session=session, engine=engine, timestamp=get_time_kyiv_with_utc())
