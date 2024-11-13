@@ -10,7 +10,7 @@ from API_sheet.sheets_update import update_sheets
 
 config_toml = toml.load('config.toml')
 
-def get_time_kyiv_with_utc(timestamp, time_format = '%Y-%m-%d %H:%M:%S%z') -> datetime:
+def get_time_kyiv_with_utc(timestamp: str = None, time_format = '%Y-%m-%d %H:%M:%S%z') -> datetime:
     utc_zone = pytz.timezone('UTC')
     kyiv_zone = pytz.timezone('Europe/Kiev')
 
@@ -48,14 +48,15 @@ def main():
         )
 
     for town, records in modbus_logger.data_for_db.items():
-        time_utc = records.get('timestamp_utc')
-        kyiv_time = get_time_kyiv_with_utc(time_utc)
 
-        
+        records = None
         if records is None:
             add_register_record(
-                town=town, session=session, engine=engine, timestamp=kyiv_time)
+                town=town, session=session, engine=engine, timestamp=get_time_kyiv_with_utc())
             continue
+        
+        time_utc = records.get('timestamp_utc')
+        kyiv_time = get_time_kyiv_with_utc(time_utc)
 
         compound = records.get('compound')
         if not compound:
