@@ -11,6 +11,7 @@ pyasn1_modules==0.4.1
 pymodbus==3.7.2
 PyMySQL==1.1.1
 pyserial==3.5
+pytz==2024.2
 requests==2.32.3
 requests-oauthlib==2.0.0
 rsa==4.9

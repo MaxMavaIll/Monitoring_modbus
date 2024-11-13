@@ -307,7 +307,7 @@ class ModbusHelper(object):
 				if not isinstance(key_value,dict):
 					print('\t[ERROR] Error parsing config file:',str(full_path_to_modbus_config_toml))
 					print('\t[ERROR] value of key "'+str(key)+'" should be of type "dictionary" (dict)')
-					print('\t[ERROR] current type of value for key "'+str(key)+'" is',type(key_value),'and current value is config["'+str(key)+'"] =',str(ckey_value))
+					print('\t[ERROR] current type of value for key "'+str(key)+'" is',type(key_value),'and current value is config["'+str(key)+'"] =',str(key_value))
 					return
 				# for keys/values that should be entered as integer
 				for sub_key in key_value:

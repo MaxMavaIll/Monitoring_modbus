@@ -1,4 +1,7 @@
-import os, toml, datetime, time
+import os
+import toml
+import datetime
+import time
 
 from modbus_dl.scripts import  modbus_helper
 from ORM_MySql.connect_mysql import connect_DB, add_register_record, disconnect, get_daily_averages
@@ -19,7 +22,8 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
     session, engine = connect_DB(
         host=config_toml['DB']['host'],
         user=config_toml['DB']['user'],
-        password=config_toml['DB']['password']
+        password=config_toml['DB']['password'],
+        database=config_toml['DB']['database']
         )
 
     for town, records in modbus_logger.data_for_db.items():
@@ -50,7 +54,6 @@ def main(time_format = '%Y-%m-%d %H:%M:%S%z'):
         update_sheets(data=modbus_logger.data_for_db, averages=averages)
     elif current_time.minute == 0: 
         update_sheets(data=modbus_logger.data_for_db)
-
 
     disconnect(session)
 

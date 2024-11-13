@@ -25,8 +25,8 @@ def create_dynamic_model(name_table):
 
     return DynamicTable
 
-def connect_DB(host: str = None, user: str = None, password: str = None):
-    engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}/{user}')
+def connect_DB(host: str = None, user: str = None, password: str = None, database: str = None):
+    engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}/{database}')
     Session = sessionmaker(bind=engine)
     session = Session()
     return session, engine
