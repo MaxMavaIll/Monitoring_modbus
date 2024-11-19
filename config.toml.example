@@ -1,66 +1,22 @@
-
-[cities] 
-1 = Kyiv
-2 = Lviv
-
-##############################
-#          Sheets            #
-##############################
-[sheets]
-url_apps_script = 'https://script.google.com/macros/s/AKfycbwWQ8mNdZxnVIzbarxVrhQVjWsbC_OQ0hPTdRtbhqnLOrQNONUb4UWs7HmYl380UDYG/exec'
-
-
+port = 6699
 
 ##############################
 #         DataBase           #
 ##############################
 
 [DB]
-host = 'localhost'
+host = 'host'
 user = 'user'
-password = '*******'
-database = 'test'
-
+password = '*********'
+database = 'database'
 
 
 ##############################
-#         ModBus_dl          #
+#         Radiacmeter        #
 ##############################
 
-[modbus_dl]
-"server_port" = 5588
-"server_timeout_seconds" = 3.0
-"poll_interval_seconds" = 10.0
-"in_memory_records" = 10
+##### Kyiv #######
+[city.Kyiv]
+ip = '304.109.134.13'
 
-"log_file_type" = "json"
-"log_file_name" = "modbus_data_log"
-"json_indent" = 4
-
-[modbus_dl.file_rotation]
-max_file_records = 100
-
-
-#EXAMPLE
-###### Lviv #######
-[compound.Lviv.6]   
-21 = "CO"           
-22 = "SO2"         
-23 = "NO2"         
-[modbus_dl.town.Lviv.192_168_0_13.6]
-21 = ["20", "HR", "uint16", "sensor_id_6_register_21", "1.0", "0.0"]
-22 = ["21", "HR", "uint16", "sensor_id_6_register_22", "1.0", "0.0"]
-23 = ["22", "HR", "uint16", "sensor_id_6_register_23", "1.0", "0.0"]
-
-
-
-###### Kyiv #######
-[compound.Kyiv.6]   
-21 = "CO"           
-22 = "SO2"         
-23 = "NO2"         
-[modbus_dl.town.Kyiv.192_168_0_15.6]
-21 = ["20", "HR", "uint16", "sensor_id_6_register_21", "1.0", "0.0"]
-22 = ["21", "HR", "uint16", "sensor_id_6_register_22", "1.0", "0.0"]
-23 = ["22", "HR", "uint16", "sensor_id_6_register_23", "1.0", "0.0"]
 
