@@ -356,6 +356,7 @@ class ModbusTCPClient:
 		self.call_groups = None
 		self.interpreter_helper = None
 		self.sock = None
+		self.filter = None
 		print('\t[INFO] Client will attempt to connect to Modbus TCP Server at:\t\t\t',str(self.modbus_tcp_server_ip_address))
 		print('\t[INFO] Client will attempt to connect to Modbus TCP Server on port:\t\t',str(self.modbus_tcp_server_port),default_server_port)
 		print('\t[INFO] Client will attempt to connect to Modbus TCP Server with Modbus ID:\t',str(self.modbus_tcp_server_id),default_server_id)
@@ -506,12 +507,32 @@ class ModbusTCPClient:
 		for modbus_call in self.call_groups:
 			modbus_request = ModbusHelper.UMODBUS_TCP_CALL[modbus_call]
 			for query in self.call_groups[modbus_call]:
-				message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query["start_address"], quantity=query["register_count"])
 
 				# Response depends on Modbus function code.
 				try:
-					response = tcp.send_message(message, self.sock)
-					# print(response[106], response[107])
+					num_registers = query["start_address"]
+
+					if self.filter == "Brovary":
+
+						num_registers += query["register_count"]
+
+						if num_registers % 2 == 1:
+							num_registers += 1
+
+						message = modbus_request(
+							slave_id=self.modbus_tcp_server_id,
+							starting_address=0,
+							quantity=num_registers
+						)
+
+						start_address = query["start_address"]-1
+						response_all_mass = tcp.send_message(message, self.sock)
+						response = response_all_mass[start_address : start_address + query["register_count"]]
+					else:
+
+						message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query["start_address"], quantity=query["register_count"])
+						response = tcp.send_message(message, self.sock)
+					
 					interpreted_response = self.interpret_response(response, modbus_call, query['start_address'])
 					all_interpreted_responses.append(interpreted_response)
 				except Exception as err:
@@ -601,10 +622,11 @@ class ModbusTCPDataLogger:
 			id = id_register.split("_")[2]
 			register = id_register.split("_")[-1]
 			compound = self.compound_name.get(town, {}).get(id, {}).get(register)
-			value = data_log[id_register]
+			formatted_value = data_log[id_register]
 
 			# formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
-			formatted_value = value / 1000
+			if not self.modbus_tcp_client.filter:
+				formatted_value = formatted_value / 1000
 			
 			if 'compound' not in data[town]:
 				data[town]['compound'] = {}
@@ -674,7 +696,12 @@ class ModbusTCPDataLogger:
 				try:
 					
 					for sensor_id in self.modbus_config['town'][town_name][ip_address]:	
-						if self.modbus_config['town'][town_name][ip_address][sensor_id].get('port'):
+						filter, port = self.modbus_config['town'][town_name][ip_address][sensor_id].get('filter'), self.modbus_config['town'][town_name][ip_address][sensor_id].get('port')
+						
+						if filter:
+							self.modbus_tcp_client.filter = self.modbus_config['town'][town_name][ip_address][sensor_id].pop("filter")
+						
+						if port:
 							self.modbus_tcp_client.modbus_tcp_server_port = self.modbus_config['town'][town_name][ip_address][sensor_id].pop("port")
 							self.modbus_tcp_client.connect(self.modbus_config['server_timeout_seconds'])
 
