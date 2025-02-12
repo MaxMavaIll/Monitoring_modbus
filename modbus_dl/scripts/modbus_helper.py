@@ -632,7 +632,7 @@ class ModbusTCPDataLogger:
 				data[town]['compound'] = {}
 
 			if compound not in data[town]['compound']:
-				data[town]['compound'][compound] = formatted_value
+				data[town]['compound'][compound] = round(formatted_value, 3)
 		
 
 		return data
