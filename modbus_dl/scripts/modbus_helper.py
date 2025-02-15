@@ -527,6 +527,9 @@ class ModbusTCPClient:
 
 						start_address = query["start_address"]-1
 						response_all_mass = tcp.send_message(message, self.sock)
+						for indx, value in enumerate(response_all_mass):
+							print(f"{indx+1} value: {value}")
+
 						response = response_all_mass[start_address : start_address + query["register_count"]]
 					else:
 
@@ -612,6 +615,18 @@ class ModbusTCPDataLogger:
 		full_path_to_log_file_rotated = os.path.join(self.log_file_location,log_file_name+'_'+ self.modbus_tcp_client.modbus_tcp_server_ip_address+'.'+log_file_type)
 		os.rename(full_path_to_log_file, full_path_to_log_file_rotated)
 
+	def rotate_values(self, data = None, town = None, id = None, compound = None, value = None):
+		
+		for copy_town, values in self.copy_data.items():
+
+			if values.get(id) and values.get(id, {}).get('name') == town:
+				if 'compound' not in data[copy_town]:
+					data[copy_town]['compound'] = {}
+
+				if compound not in data[copy_town]['compound']:
+					data[copy_town]['compound'][compound] = round(value, 3)
+
+
 	def create_data_for_db(self, data = None, data_log = None, town = None, ):
 		if town not in data:
 			data[town] = {'timestamp_utc': data_log.pop('timestamp_utc')}
@@ -623,10 +638,13 @@ class ModbusTCPDataLogger:
 			register = id_register.split("_")[-1]
 			compound = self.compound_name.get(town, {}).get(id, {}).get(register)
 			formatted_value = data_log[id_register]
+			
 
 			# formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
 			if not self.modbus_tcp_client.filter:
 				formatted_value = formatted_value / 1000
+			
+			self.rotate_values(data, town, id, compound, formatted_value)
 			
 			if 'compound' not in data[town]:
 				data[town]['compound'] = {}
@@ -637,7 +655,20 @@ class ModbusTCPDataLogger:
 
 		return data
 
+	def add_uncreated_cities(self, path_to_toml = None, time_format = '%Y-%m-%d %H:%M:%S%z'):
+		cofnig = toml.load(path_to_toml)
+		data = {}
+		self.copy_data = {}
+		ts_local = datetime.datetime.now().astimezone()
+		ts_utc = ts_local.astimezone(datetime.timezone.utc)
+
+		if cofnig.get("copy_data") != None:
+			self.copy_data = cofnig['copy_data']
+			for town in cofnig['copy_data']:
+				data[town] = {'timestamp_utc': ts_utc.strftime(time_format)}
 		
+		return data
+
 
 	def __init__(self, full_path_to_modbus_config_toml=None, full_path_to_logged_data=None, quiet=False, data_logging=True):
 		if full_path_to_modbus_config_toml is None:
@@ -661,7 +692,7 @@ class ModbusTCPDataLogger:
 			quiet = False
 		self.data_logging = data_logging
 		self.log_file_location = full_path_to_logged_data
-		self.data_for_db = {}
+		self.data_for_db = self.add_uncreated_cities(full_path_to_modbus_config_toml)
 				
 		self.data_log = {
 			'in_memory_records': 0,
