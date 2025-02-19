@@ -641,8 +641,7 @@ class ModbusTCPDataLogger:
 			
 
 			# formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
-			if not self.modbus_tcp_client.filter:
-				formatted_value = formatted_value / 1000
+			formatted_value = formatted_value / 1000
 			
 			self.rotate_values(data, town, id, compound, formatted_value)
 			
