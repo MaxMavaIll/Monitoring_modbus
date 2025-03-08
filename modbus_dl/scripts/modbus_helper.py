@@ -535,8 +535,10 @@ class ModbusTCPClient:
 
 						message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query["start_address"], quantity=query["register_count"])
 						response = tcp.send_message(message, self.sock)
+						print(f"Response: {response}")
 					
 					interpreted_response = self.interpret_response(response, modbus_call, query['start_address'])
+					print(interpreted_response)
 					all_interpreted_responses.append(interpreted_response)
 				except Exception as err:
 					print(f"Didn't get a result from the registry {self.modbus_tcp_server_ip_address} {self.modbus_tcp_server_id} {query['start_address']}")
@@ -629,8 +631,9 @@ class ModbusTCPDataLogger:
 
 	def create_data_for_db(self, data = None, data_log = None, town = None, ):
 		if town not in data:
-			data[town] = {'timestamp_utc': data_log.pop('timestamp_utc')}
+			data[town] = {'timestamp_utc': data_log['timestamp_utc']}
 
+		del data_log['timestamp_utc']
 		del data_log['timestamp_local']
 
 		for id_register in data_log:
