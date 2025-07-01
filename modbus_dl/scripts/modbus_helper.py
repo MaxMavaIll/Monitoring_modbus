@@ -1,7 +1,10 @@
+import logging
 import os, sys, socket, datetime, time, math, csv, json, signal, toml
 from umodbus.client import tcp
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from data_helper import DataHelper
+
+from modbus_dl.utils import setup_logging
 
 class ModbusHelper(object):
 
@@ -327,14 +330,14 @@ class ModbusHelper(object):
 		return config, config_compound
 
 class ModbusTCPClient:
-	def __init__(self, server_ip=None, server_port=None, server_id=None, poll_interval_seconds=None):
+	def __init__(self, server_ip=None, server_port=None, server_id=None, poll_interval_seconds=None, logger: logging.Logger = None):
 		if server_ip is None:
-			print('\t[ERROR] no server_ip argument provided to ModbusTCPClient instance')
-			print('\t[ERROR] server_port, server_id and poll_interval_seconds arguments will default to 502, 1, and 1 second respectively if not specified')
-			print('\t[ERROR] at a minimum, the ModbusTCPClient should know which IP address to connect to')
-			print('\t[ERROR] here are some examples:')
-			print('\t[ERROR]\t\tmy_tcp_client = ModbusTCPClient("10.1.10.30")\t# connect to Modbus TCP Server @ 10.1.10.30 on default port 502 and with default ID 1')
-			print('\t[ERROR]\t\tmy_tcp_client = ModbusTCPClient(server_ip="10.1.10.31", server_port=503, server_id=10, poll_interval_seconds=5)\t# connect to Modbus TCP Server @ 10.1.10.31 on port 503, with ID 10 and poll every 5 seconds')
+			logger.error('\t[ERROR] no server_ip argument provided to ModbusTCPClient instance')
+			logger.error('\t[ERROR] server_port, server_id and poll_interval_seconds arguments will default to 502, 1, and 1 second respectively if not specified')
+			logger.error('\t[ERROR] at a minimum, the ModbusTCPClient should know which IP address to connect to')
+			logger.error('\t[ERROR] here are some examples:')
+			logger.error('\t[ERROR]\t\tmy_tcp_client = ModbusTCPClient("10.1.10.30")\t# connect to Modbus TCP Server @ 10.1.10.30 on default port 502 and with default ID 1')
+			logger.error('\t[ERROR]\t\tmy_tcp_client = ModbusTCPClient(server_ip="10.1.10.31", server_port=503, server_id=10, poll_interval_seconds=5)\t# connect to Modbus TCP Server @ 10.1.10.31 on port 503, with ID 10 and poll every 5 seconds')
 			return
 		else:
 			self.modbus_tcp_server_ip_address = server_ip
@@ -357,10 +360,11 @@ class ModbusTCPClient:
 		self.interpreter_helper = None
 		self.sock = None
 		self.filter = None
-		print('\t[INFO] Client will attempt to connect to Modbus TCP Server at:\t\t\t',str(self.modbus_tcp_server_ip_address))
-		print('\t[INFO] Client will attempt to connect to Modbus TCP Server on port:\t\t',str(self.modbus_tcp_server_port),default_server_port)
-		print('\t[INFO] Client will attempt to connect to Modbus TCP Server with Modbus ID:\t',str(self.modbus_tcp_server_id),default_server_id)
-		print('\t[INFO] Client will attempt to poll the Modbus TCP Server every:\t\t\t',str(self.poll_interval_seconds)+' seconds',default_poll_interval)
+		self.log = logger
+		logger.info(f'\t[INFO] Client will attempt to connect to Modbus TCP Server at:\t\t\t,{str(self.modbus_tcp_server_ip_address)}')
+		logger.info(f'\t[INFO] Client will attempt to connect to Modbus TCP Server on port:\t\t,{str(self.modbus_tcp_server_port),default_server_port}')
+		logger.info(f'\t[INFO] Client will attempt to connect to Modbus TCP Server with Modbus ID:\t,{str(self.modbus_tcp_server_id),default_server_id}')
+		logger.info(f'\t[INFO] Client will attempt to poll the Modbus TCP Server every:\t\t\t, {str(self.poll_interval_seconds)+' seconds',default_poll_interval}')
 
 	def load_template(self, modbus_config=None):
 		# if full_path_to_modbus_template_csv is None:
@@ -503,7 +507,8 @@ class ModbusTCPClient:
 	def cycle_poll(self, time_format = '%Y-%m-%d %H:%M:%S%z'):
 		ts_local = datetime.datetime.now().astimezone()
 		ts_utc = ts_local.astimezone(datetime.timezone.utc)
-		all_interpreted_responses = [{'timestamp_utc': ts_utc.strftime(time_format), 'timestamp_local': ts_local.strftime(time_format)}]
+		all_interpreted_responses = [{'timestamp_utc': ts_utc.strftime(time_format), 
+								'timestamp_local': ts_local.strftime(time_format)}]
 		for modbus_call in self.call_groups:
 			modbus_request = ModbusHelper.UMODBUS_TCP_CALL[modbus_call]
 			for query in self.call_groups[modbus_call]:
@@ -512,37 +517,44 @@ class ModbusTCPClient:
 				try:
 					num_registers = query["start_address"]
 
-					if self.filter == "Brovary":
+					# if self.filter == "Brovary":
+						
+						# num_registers += query["register_count"]
 
-						num_registers += query["register_count"]
+						# if num_registers % 2 == 1:
+						# 	num_registers += 1
 
-						if num_registers % 2 == 1:
-							num_registers += 1
+						# message = modbus_request(
+						# 	slave_id=self.modbus_tcp_server_id,
+						# 	starting_address=0,
+						# 	quantity=num_registers
+						# )
 
-						message = modbus_request(
-							slave_id=self.modbus_tcp_server_id,
-							starting_address=0,
-							quantity=num_registers
-						)
+						# start_address = query["start_address"]-1
+						# response_all_mass = tcp.send_message(message, self.sock)
+						# for indx, value in enumerate(response_all_mass):
+						# 	self.log(f"{indx+1} value: {value}")
 
-						start_address = query["start_address"]-1
-						response_all_mass = tcp.send_message(message, self.sock)
-						for indx, value in enumerate(response_all_mass):
-							print(f"{indx+1} value: {value}")
+						# response = response_all_mass[start_address : start_address + query["register_count"]]
+					# else:
 
-						response = response_all_mass[start_address : start_address + query["register_count"]]
-					else:
-
-						message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query["start_address"], quantity=query["register_count"])
-						response = tcp.send_message(message, self.sock)
-						print(f"Response: {response}")
+					message = modbus_request(slave_id=self.modbus_tcp_server_id, starting_address=query["start_address"], quantity=query["register_count"])
+					response = tcp.send_message(message, self.sock)
+					self.log.info(f"Response {self.modbus_tcp_server_ip_address}:{self.modbus_tcp_server_id} {response}")
 					
 					interpreted_response = self.interpret_response(response, modbus_call, query['start_address'])
-					print(interpreted_response)
-					all_interpreted_responses.append(interpreted_response)
+					self.log.info(interpreted_response)
+					
+					key = next(iter(interpreted_response))
+					if self.filter == 'expensive_server' and interpreted_response[key] < 0:
+						self.log.info(f"Skipping negative value {interpreted_response[key]} for key {key} on server {self.modbus_tcp_server_ip_address}:{self.modbus_tcp_server_id}")
+						interpreted_response[key] = 0
+
+					all_interpreted_responses.append(interpreted_response) 
+
 				except Exception as err:
-					print(f"Didn't get a result from the registry {self.modbus_tcp_server_ip_address} {self.modbus_tcp_server_id} {query['start_address']}")
-					print(f'Error: answer with server {err}')
+					self.log.error(f"Didn't get a result from the registry {self.modbus_tcp_server_ip_address} {self.modbus_tcp_server_id} {query['start_address']}")
+					self.log.error(f'Error: answer with server {err}')
 
 		combined_responses = self.combine_tag_responses(all_interpreted_responses)
 		return combined_responses
@@ -630,6 +642,7 @@ class ModbusTCPDataLogger:
 
 
 	def create_data_for_db(self, data = None, data_log = None, town = None, ):
+		self.log.info(f'Preparation data for DB town {town}...')
 		if town not in data:
 			data[town] = {'timestamp_utc': data_log['timestamp_utc']}
 
@@ -644,10 +657,14 @@ class ModbusTCPDataLogger:
 			
 
 			# formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
-			formatted_value = formatted_value / 1000
+			match compound:
+				case 'H2S':
+					formatted_value = formatted_value / 10000
+				case _:
+					formatted_value = formatted_value / 1000
 			
 			self.rotate_values(data, town, id, compound, formatted_value)
-			
+			self.log.info(f"Town - {town}:id{id}:r{register} | Compound {compound} -> formatted {formatted_value}")
 			if 'compound' not in data[town]:
 				data[town]['compound'] = {}
 
@@ -672,29 +689,30 @@ class ModbusTCPDataLogger:
 		return data
 
 
-	def __init__(self, full_path_to_modbus_config_toml=None, full_path_to_logged_data=None, quiet=False, data_logging=True):
+	def __init__(self, full_path_to_modbus_config_toml=None, full_path_to_logged_data=None, quiet=False, data_logging=True, log: logging.Logger = setup_logging()):
+
 		if full_path_to_modbus_config_toml is None:
-			print('\t[ERROR] a Modbus config.json file is required for a ModbusTCPDataLogger instance')
-			print('\t[ERROR] please provide the full path to the Modbus config.json file')
+			log.error('a Modbus config.json file is required for a ModbusTCPDataLogger instance')
+			log.error('please provide the full path to the Modbus config.json file')
 			return
-		# if full_path_to_modbus_template_csv is None:
-		# 	print('\t[ERROR] a Modbus template.csv file is required for a ModbusTCPDataLogger instance')
-		# 	print('\t[ERROR] please provide the full path to the Modbus template.csv file')
-		# 	return
+		
 		if full_path_to_logged_data is None:
-			print('\t[WARNING] no explicit path location provided on where to store data log files on the local system')
+			log.warning('no explicit path location provided on where to store data log files on the local system')
 			default_path_to_data_files = os.path.dirname(os.path.realpath(__file__)).replace('scripts', 'data')
-			print('\t[WARNING] will default to using:', str(default_path_to_data_files))
+			log.warning(f'will default to using: {str(default_path_to_data_files)}')
 			if not os.path.isdir(default_path_to_data_files):
 				os.mkdir(default_path_to_data_files)
 			full_path_to_logged_data = default_path_to_data_files
+
 		if not data_logging:
-			print('\t[WARNING] data logging functionality has been explicitely disbaled by setting data_logging=False')
-			print('\t[WARNING] this overwrites the "quiet" argument and means that quiet=False')
+			log.warning('data logging functionality has been explicitely disbaled by setting data_logging=False')
+			log.warning('this overwrites the "quiet" argument and means that quiet=False')
 			quiet = False
 		self.data_logging = data_logging
 		self.log_file_location = full_path_to_logged_data
 		self.data_for_db = self.add_uncreated_cities(full_path_to_modbus_config_toml)
+		self.log = log
+		
 				
 		self.data_log = {
 			'in_memory_records': 0,
@@ -702,21 +720,23 @@ class ModbusTCPDataLogger:
 		}
 		self.modbus_config, self.compound_name = ModbusHelper.parse_json_config(full_path_to_modbus_config_toml)
 		if self.modbus_config is None:
-			print('\t[ERROR] An error occured while parsing the Modbus json configuration file!')
-			print('\t[ERROR] Please review the error messages, correct the Modbus json configuration file and try again.')
-			print('\t[ERROR] Now exiting Python with sys.exit()')
+			log.error('An error occured while parsing the Modbus json configuration file!')
+			log.error('Please review the error messages, correct the Modbus json configuration file and try again.')
+			log.error('Now exiting Python with sys.exit()')
 			sys.exit()
 
 		for town_name in self.modbus_config['town']:
 			for ip_address in self.modbus_config['town'][town_name]:
+				log.info(f'Town {town_name} -> IP {ip_address}...')
+
 				if self.modbus_config['log_file_type'] == 'csv':
 					self.data_log['data'] = []
 				elif self.modbus_config['log_file_type'] == 'json':
 					self.data_log['data'] = {}
 				else:
-					print('\t[ERROR] on "log_file_type": '+str(self.modbus_config['log_file_type']))
-					print('\t[ERROR] currently supported log_file_type are either "csv" or "json"')
-					print('\t[ERROR] Now exiting Python with sys.exit()')
+					log.error(f'on "log_file_type": {self.modbus_config['log_file_type']}')
+					log.error('currently supported log_file_type are either "csv" or "json"')
+					log.error('Now exiting Python with sys.exit()')
 					sys.exit()
 
 				connect = False
@@ -724,13 +744,15 @@ class ModbusTCPDataLogger:
 				self.modbus_tcp_client = ModbusTCPClient(
 							server_ip=ip_address.replace('_','.'),
 							server_port=self.modbus_config['server_port'],
-							poll_interval_seconds=self.modbus_config['poll_interval_seconds']
+							poll_interval_seconds=self.modbus_config['poll_interval_seconds'],
+							logger=log
 						)
 				try:
 					
 					for sensor_id in self.modbus_config['town'][town_name][ip_address]:	
 						filter, port = self.modbus_config['town'][town_name][ip_address][sensor_id].get('filter'), self.modbus_config['town'][town_name][ip_address][sensor_id].get('port')
 						
+						log.info(f'Processing sensor ID:{str(sensor_id).upper()} with filter {filter.upper()} and port {str(port).upper()}...')
 						if filter:
 							self.modbus_tcp_client.filter = self.modbus_config['town'][town_name][ip_address][sensor_id].pop("filter")
 						
@@ -761,6 +783,6 @@ class ModbusTCPDataLogger:
 					if town_name not in self.data_for_db:
 						self.data_for_db[town_name] = None
 					continue
-				self.termination_signal_handler()
+				# self.termination_signal_handler()
 				self.create_data_for_db(self.data_for_db, self.data_log['data'], town_name)
 		

@@ -6,3 +6,4 @@ delete_table.py
 .vscode/
 save/
 test.py
+logs/
