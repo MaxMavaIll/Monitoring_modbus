@@ -755,7 +755,7 @@ class ModbusTCPDataLogger:
 					for sensor_id in self.modbus_config['town'][town_name][ip_address]:	
 						filter, port = self.modbus_config['town'][town_name][ip_address][sensor_id].get('filter'), self.modbus_config['town'][town_name][ip_address][sensor_id].get('port')
 						
-						log.info(f'Processing sensor ID:{str(sensor_id).upper()} with filter {filter.upper()} and port {str(port).upper()}...')
+						log.info(f'Processing sensor ID:{str(sensor_id).upper()} with filter {str(filter).upper()} and port {str(port).upper()}...')
 						if filter:
 							self.modbus_tcp_client.filter = self.modbus_config['town'][town_name][ip_address][sensor_id].pop("filter")
 						
@@ -782,7 +782,7 @@ class ModbusTCPDataLogger:
 							print('Press Ctrl+C to stop and exit gracefully...')
 						# time.sleep(self.modbus_config['poll_interval_seconds'])
 				except Exception as err:
-					print(f"Error: {err}")
+					log.error(f"Error: {err}")
 					if town_name not in self.data_for_db:
 						self.data_for_db[town_name] = None
 					continue
