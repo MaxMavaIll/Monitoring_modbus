@@ -641,7 +641,7 @@ class ModbusTCPDataLogger:
 					data[copy_town]['compound'][compound] = round(value, 3)
 
 
-	def create_data_for_db(self, data = None, data_log = None, town = None, ):
+	def create_data_for_db(self, data = None, data_log = None, town = None, filter = None):
 		self.log.info(f'Preparation data for DB town {town}...')
 		if town not in data:
 			data[town] = {'timestamp_utc': data_log['timestamp_utc']}
@@ -659,7 +659,8 @@ class ModbusTCPDataLogger:
 			# formatted_value = f'{value / 1000}' if compound is None else f'{value / 1000} {compound}'
 			match compound:
 				case 'H2S':
-					formatted_value = formatted_value / 10000
+					formatted_value = formatted_value / 10000 \
+						if filter != 'expensive_server' else formatted_value / 1000
 				case _:
 					formatted_value = formatted_value / 1000
 			
@@ -787,5 +788,5 @@ class ModbusTCPDataLogger:
 						self.data_for_db[town_name] = None
 					continue
 				# self.termination_signal_handler()
-				self.create_data_for_db(self.data_for_db, self.data_log['data'], town_name)
+				self.create_data_for_db(self.data_for_db, self.data_log['data'], town_name, filter=self.modbus_tcp_client.filter)
 		
