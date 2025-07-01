@@ -689,13 +689,16 @@ class ModbusTCPDataLogger:
 		return data
 
 
-	def __init__(self, full_path_to_modbus_config_toml=None, full_path_to_logged_data=None, quiet=False, data_logging=True, log: logging.Logger = setup_logging()):
+	def __init__(self, full_path_to_modbus_config_toml=None, full_path_to_logged_data=None, quiet=False, data_logging=True, log: logging.Logger = None):
 
 		if full_path_to_modbus_config_toml is None:
 			log.error('a Modbus config.json file is required for a ModbusTCPDataLogger instance')
 			log.error('please provide the full path to the Modbus config.json file')
 			return
 		
+		if log is None:
+			log = setup_logging()
+
 		if full_path_to_logged_data is None:
 			log.warning('no explicit path location provided on where to store data log files on the local system')
 			default_path_to_data_files = os.path.dirname(os.path.realpath(__file__)).replace('scripts', 'data')

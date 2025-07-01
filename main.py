@@ -34,7 +34,6 @@ def get_time_kyiv_with_utc(timestamp: str = None, time_format = '%Y-%m-%d %H:%M:
 
 
 def main():
-    initialize_environment()
     log = setup_logging()
     log.info("\n##############################################" \
              "\n##############################################")
@@ -100,6 +99,7 @@ def main():
 
 
 if __name__ == "__main__":
+    initialize_environment()
     log = setup_logging()
 
     try:
